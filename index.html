@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trident Express — Last-mile logistics for modern businesses</title>
+
+<style>
+  /* ====== Archivo (variable) — local files ====== */
+  @font-face{
+    font-family: "Archivo";
+    src: url("assets/a8.ttf") format("truetype-variations");
+    font-weight: 100 900;
+    font-stretch: 62% 125%;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face{
+    font-family: "Archivo";
+    src: url("assets/a9.ttf") format("truetype-variations");
+    font-weight: 100 900;
+    font-stretch: 62% 125%;
+    font-style: italic;
+    font-display: swap;
+  }
+  /* ====== Seasalt Slanted — used for every italic in the design ====== */
+  @font-face{
+    font-family: "Seasalt Slanted";
+    src: url("assets/a10.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;  /* the face itself IS slanted, so we declare it as upright */
+    font-display: swap;
+  }
+
+  :root{
+    /* ============== TRIDENT BRAND PALETTE ==============
+       Ocean Navy   — primary, deep navy
+       Sky Pulse    — accent, vibrant cyan-blue
+       Mist White   — page background
+       Midnight Black — type & dense surfaces
+       (Hex labels in the brand book don't match the visible
+        swatches; trusting the swatches here.)
+    */
+    --navy:      #001233;
+    --navy-2:    #001a4a;
+    --navy-soft: #e6ebf5;
+    --sky:       #00aeef;
+    --sky-2:     #38c2f5;
+    --sky-soft:  #d6f1fc;
+    --mist:      #f4f5f7;
+    --mist-2:    #ebedf0;
+    --black:     #0a0a0a;
+    --white:     #ffffff;
+
+    /* Functional tokens (mapped to brand) */
+    --bg:        var(--mist);
+    --bg-2:      var(--mist-2);
+    --ink:       var(--navy);
+    --ink-2:     #2a3a5c;
+    --mute:      #6b7896;
+    --line:      #dfe3ea;
+    --line-2:    #cdd3de;
+    --card:      var(--white);
+    --accent:    var(--sky);
+    --accent-ink: #003a5c;
+    --accent-soft: var(--sky-soft);
+
+    --r-sm: 10px;
+    --r-md: 16px;
+    --r-lg: 22px;
+    --r-xl: 32px;
+
+    --shadow-1: 0 1px 0 oklch(0% 0 0 / 0.04), 0 1px 2px oklch(0% 0 0 / 0.04);
+    --shadow-2: 0 1px 0 oklch(0% 0 0 / 0.04), 0 10px 30px -12px oklch(0% 0 0 / 0.12);
+
+    --maxw: 1600px;
+    --pad: clamp(20px, 4vw, 56px);
+
+    /* All Archivo — variable width + weight axes do the typographic work.
+       Italic moments swap to Seasalt Slanted via .italic / em / i / .em rules below. */
+    --display: "Archivo", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --sans:    "Archivo", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:    "Archivo", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --script:  "Seasalt Slanted", "Archivo", serif;
+  }
+
+  /* Every italic moment in the design uses Seasalt Slanted */
+  em, i, .italic, .em{
+    font-family: var(--script);
+    font-style: normal;        /* face is intrinsically slanted */
+    font-weight: 400;
+    font-stretch: 100%;
+    letter-spacing: -0.01em;
+  }
+
+  /* ===== Trident swoosh brand element ===== */
+  .swoosh{
+    display:inline-block;
+    background-color: var(--sky);
+    -webkit-mask: url("assets/a11.svg") no-repeat center / contain;
+            mask: url("assets/a11.svg") no-repeat center / contain;
+    line-height: 0;
+  }
+  .swoosh--hero{ width: clamp(140px, 18vw, 260px); aspect-ratio: 345.61 / 154.23; }
+  .swoosh--cta{  width: clamp(120px, 14vw, 200px); aspect-ratio: 345.61 / 154.23; }
+  .swoosh--inline{ width: 38px; aspect-ratio: 345.61 / 154.23; vertical-align: -2px; }
+  .swoosh--big{ width: clamp(220px, 28vw, 360px); aspect-ratio: 345.61 / 154.23; }
+  .swoosh.navy{ background-color: var(--navy); }
+  .swoosh.white{ background-color: var(--white); }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    font-family:var(--sans);
+    color:var(--ink);
+    background:var(--bg);
+    font-size:16px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    font-feature-settings: "ss01","cv11";
+  }
+  img{ max-width:100%; display:block; }
+  a{ color:inherit; text-decoration:none; }
+  button{ font:inherit; color:inherit; cursor:pointer; }
+
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding-inline:var(--pad); }
+
+  /* ============ TYPE ============ */
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:500;
+    font-stretch: 80%;
+    letter-spacing:0.10em;
+    text-transform:uppercase;
+    color:var(--mute);
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:6px; height:6px; border-radius:50%;
+    background:var(--accent);
+  }
+  .display{
+    font-family:var(--display);
+    font-weight:500;
+    font-stretch: 95%;
+    letter-spacing:-0.035em;
+    line-height:0.95;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .h-xl{ font-size: clamp(48px, 8.2vw, 132px); }
+  .h-lg{ font-size: clamp(40px, 5.6vw, 84px); }
+  .h-md{ font-size: clamp(32px, 3.6vw, 56px); }
+  .lede{
+    font-size: clamp(17px, 1.4vw, 20px);
+    color:var(--ink-2);
+    line-height:1.5;
+    max-width: 56ch;
+    text-wrap:pretty;
+    font-weight: 400;
+  }
+  .italic{ color: var(--accent); }
+
+  /* ============ NAV ============ */
+  .nav{
+    position:sticky; top:0; z-index:50;
+    backdrop-filter: saturate(140%) blur(14px);
+    -webkit-backdrop-filter: saturate(140%) blur(14px);
+    background: color-mix(in oklab, var(--bg) 78%, transparent);
+    border-bottom: 1px solid transparent;
+    transition: border-color .25s ease, background .25s ease;
+  }
+  .nav.scrolled{
+    border-bottom-color: var(--line);
+    background: color-mix(in oklab, var(--bg) 92%, transparent);
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    height:72px;
+  }
+  .logo{
+    display:inline-flex; align-items:center;
+    color: var(--navy);
+    line-height: 0;
+  }
+  .logo img{ height: 30px; width: auto; display: block; }
+  .nav-links{
+    display:flex; gap:32px; align-items:center;
+    font-size:14.5px; color:var(--ink-2);
+  }
+  .nav-links a{ position:relative; padding:6px 0; }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-cta{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:10px 16px; border-radius:999px;
+    background:var(--ink); color:var(--bg);
+    font-size:14px; font-weight:500;
+    transition: transform .2s ease, background .2s ease;
+  }
+  .nav-cta:hover{ background: var(--navy-2); transform: translateY(-1px); }
+  .nav-cta svg{ width:14px; height:14px; }
+  .nav-mobile{ display:none; }
+  @media (max-width: 860px){
+    .nav-links{
+      display:none;
+      position:absolute; top:72px; left:0; right:0;
+      flex-direction:column; align-items:stretch; gap:0;
+      background: var(--bg);
+      border-bottom:1px solid var(--line);
+      padding: 8px var(--pad) 16px;
+      box-shadow: var(--shadow-2);
+    }
+    .nav-links.open{ display:flex; }
+    .nav-links a{ padding:14px 0; font-size:16px; border-bottom:1px solid var(--line); }
+    .nav-links a:last-child{ border-bottom:0; }
+    .nav-links a::after{ display:none; }
+    .nav-mobile{ display:inline-flex; }
+    .nav{ position:sticky; }
+    .nav-inner{ position:relative; }
+  }
+  @media (max-width: 560px){
+    .nav-inner{ height:60px; }
+    .nav-links{ top:60px; }
+    .logo img{ height:24px; }
+    .nav-cta{ padding:8px 13px; font-size:13px; }
+  }
+
+  /* ============ BUTTONS ============ */
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    height:52px; padding:0 22px; border-radius:999px;
+    font-size:15px; font-weight:500;
+    border:1px solid transparent;
+    transition: transform .2s ease, background .2s ease, border-color .2s ease, color .2s ease;
+    cursor:pointer; white-space:nowrap;
+  }
+  .btn .arrow{
+    width:22px; height:22px; border-radius:50%;
+    background: color-mix(in oklab, currentColor 12%, transparent);
+    display:inline-flex; align-items:center; justify-content:center;
+    transition: transform .25s ease;
+  }
+  .btn:hover .arrow{ transform: translateX(2px); }
+  .btn-primary{
+    background:var(--ink); color:var(--bg);
+  }
+  .btn-primary:hover{ background: var(--navy-2); }
+  .btn-ghost{
+    background:transparent; color:var(--ink);
+    border-color: var(--line-2);
+  }
+  .btn-ghost:hover{ background: var(--bg-2); border-color: var(--ink); }
+
+  /* ============ HERO ============ */
+  .hero{
+    padding: clamp(40px, 6vw, 96px) 0 clamp(60px, 8vw, 120px);
+    position:relative;
+  }
+  .hero-meta{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    gap:24px; margin-bottom: clamp(28px, 4vw, 56px);
+    border-bottom: 1px solid var(--line); padding-bottom: 24px;
+  }
+  .hero-meta .loc{
+    font-family:var(--mono); font-size:12px; color:var(--mute);
+    font-stretch: 80%; letter-spacing:0.06em; text-transform:uppercase;
+  }
+  .hero-meta .loc b{ color:var(--ink); font-weight:600; }
+  .hero h1{
+    margin: 0 0 clamp(20px, 3vw, 36px);
+  }
+  .hero h1.display .em{ color:var(--accent); }
+  .hero-sub{
+    display:grid; grid-template-columns: 1.1fr 1fr; gap: clamp(24px, 4vw, 64px);
+    align-items:end;
+    margin-bottom: clamp(36px, 5vw, 64px);
+  }
+  .hero-cta{ display:flex; gap:12px; flex-wrap:wrap; }
+  @media (max-width: 760px){
+    .hero-sub{ grid-template-columns: 1fr; }
+    .hero-meta{ flex-direction:column; align-items:flex-start; gap:10px; }
+    .hero-cta .btn{ flex:1 1 auto; justify-content:center; }
+  }
+
+  /* Hero visual grid */
+  .hero-grid{
+    display:grid;
+    grid-template-columns: 1.6fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap:14px;
+    height: clamp(380px, 56vw, 620px);
+  }
+  .hero-grid .cell{ position:relative; border-radius:var(--r-lg); overflow:hidden; }
+  .hero-grid .cell.big{ grid-row: 1 / span 2; }
+  @media (max-width: 760px){
+    .hero-grid{ grid-template-columns: 1fr 1fr; grid-template-rows: 1.2fr 1fr 1fr; height:auto; aspect-ratio: unset; }
+    .hero-grid .cell.big{ grid-column: 1 / -1; grid-row: 1; aspect-ratio: 16/10; }
+    .hero-grid .cell:not(.big){ aspect-ratio: 4/3; }
+  }
+
+  /* Image placeholder — used as fallback under <img> photos */
+  .ph{
+    width:100%; height:100%;
+    background:
+      repeating-linear-gradient(135deg,
+        oklch(92% 0.01 80) 0px, oklch(92% 0.01 80) 12px,
+        oklch(95% 0.008 80) 12px, oklch(95% 0.008 80) 24px);
+    position:relative;
+    display:flex; align-items:flex-end; justify-content:flex-start;
+    padding:18px;
+  }
+
+  /* Photo cells: <img> covers the cell, with caption pill overlay */
+  .cell .photo{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; display:block;
+    background: var(--bg-2);
+    filter: saturate(0.92) contrast(1.02);
+  }
+  .cell .caption{
+    position:absolute; left:18px; bottom:18px; z-index:2;
+    font-family: var(--mono); font-size:11px; font-stretch:80%;
+    letter-spacing:0.08em; text-transform:uppercase;
+    color: var(--white);
+    background: color-mix(in oklab, var(--navy) 70%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    padding:6px 12px; border-radius:999px;
+    border:1px solid color-mix(in oklab, var(--white) 14%, transparent);
+  }
+  .cell::after{
+    content:""; position:absolute; inset:0; z-index:1;
+    background: linear-gradient(to top, color-mix(in oklab, var(--navy) 35%, transparent) 0%, transparent 35%);
+    pointer-events:none;
+  }
+  .ph.dark{
+    background:
+      repeating-linear-gradient(135deg,
+        oklch(22% 0.01 80) 0px, oklch(22% 0.01 80) 12px,
+        oklch(26% 0.012 80) 12px, oklch(26% 0.012 80) 24px);
+    color:var(--bg);
+  }
+  .ph.green{
+    background:
+      repeating-linear-gradient(135deg,
+        #38c2f5 0px, #38c2f5 12px,
+        #69d2f7 12px, #69d2f7 24px);
+    color: var(--navy);
+  }
+  .ph .label{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.06em;
+    text-transform:uppercase; color: color-mix(in oklab, currentColor 70%, transparent);
+    background: color-mix(in oklab, var(--bg) 80%, transparent);
+    padding:6px 10px; border-radius:999px;
+    backdrop-filter: blur(4px);
+  }
+  .ph.dark .label{ background: color-mix(in oklab, oklch(0% 0 0) 35%, transparent); color: oklch(95% 0.005 80); }
+
+  /* Hero ticker / fleet bar */
+  .ticker{
+    margin-top: clamp(28px, 4vw, 48px);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:18px 0;
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:0;
+  }
+  .ticker > div{
+    display:flex; flex-direction:column; gap:6px;
+    padding: 0 clamp(16px, 2vw, 28px);
+    border-left:1px solid var(--line);
+  }
+  .ticker > div:first-child{ border-left:0; padding-left:0; }
+  .ticker .k{ font-family:var(--mono); font-size:11px; font-stretch: 80%; letter-spacing:0.08em; text-transform:uppercase; color:var(--mute); }
+  .ticker .v{ font-family:var(--display); font-weight:500; font-stretch: 92%; font-size: clamp(28px, 3vw, 40px); line-height:1; letter-spacing:-0.03em; }
+  @media (max-width: 760px){
+    .ticker{ grid-template-columns: repeat(2, 1fr); row-gap:18px; }
+    .ticker > div:nth-child(3){ border-left:0; padding-left:0; }
+  }
+  @media (max-width: 400px){
+    .ticker{ grid-template-columns: 1fr; }
+    .ticker > div{ border-left:0; padding-left:0; flex-direction:row; align-items:baseline; justify-content:space-between; }
+  }
+
+  /* ============ SECTION ============ */
+  section{ padding: clamp(72px, 10vw, 140px) 0; }
+  .section-head{
+    display:grid; grid-template-columns: 1.1fr 1fr; gap: clamp(24px, 4vw, 80px);
+    align-items:end; margin-bottom: clamp(40px, 5vw, 72px);
+  }
+  @media (max-width: 760px){ .section-head{ grid-template-columns: 1fr; } }
+  .section-head h2{ margin:14px 0 0; }
+  .section-head .lede{ margin: 0 0 6px; }
+
+  /* ============ SERVICES (cards) ============ */
+  .services{ background: var(--bg); }
+  .svc-grid{
+    display:grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  }
+  @media (max-width: 1080px){ .svc-grid{ grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px){ .svc-grid{ grid-template-columns: 1fr; } }
+  .svc{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 22px;
+    display:flex; flex-direction:column; gap:18px;
+    min-height: 320px;
+    transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease, border-color .35s ease;
+    position:relative; overflow:hidden;
+  }
+  .svc:hover{ transform: translateY(-4px); box-shadow: var(--shadow-2); border-color: var(--line-2); }
+  .svc .num{ font-family:var(--mono); font-size:11px; font-stretch:80%; color:var(--mute); letter-spacing:0.08em; text-transform:uppercase; }
+  .svc .icon{
+    width:44px; height:44px; border-radius:12px;
+    background: var(--bg-2); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--ink);
+  }
+  .svc.green .icon{ background: var(--sky-soft); border-color: color-mix(in oklab, var(--accent) 35%, transparent); color: var(--accent-ink); }
+  .svc h3{
+    font-family:var(--display); font-weight:500; font-stretch:95%;
+    font-size: clamp(24px, 2.2vw, 30px);
+    line-height:1.05; letter-spacing:-0.025em;
+    margin: 0;
+  }
+  .svc p{ color: var(--ink-2); margin:0; font-size:15px; line-height:1.5; }
+  .svc .more{
+    margin-top:auto; display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:12px; font-stretch:80%; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--ink);
+  }
+  .svc .more::after{
+    content:"↗"; font-family: var(--sans); font-size:14px;
+    transition: transform .2s ease;
+  }
+  .svc:hover .more::after{ transform: translate(2px,-2px); }
+
+  /* ============ OUR SERVICES HIGHLIGHT (checklist) ============ */
+  .highlight{
+    background: var(--bg-2);
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  }
+  .checklist{
+    display:grid; grid-template-columns: repeat(2, 1fr); gap: 0;
+    border-top:1px solid var(--line);
+  }
+  @media (max-width: 760px){ .checklist{ grid-template-columns: 1fr; } }
+  .check{
+    padding: 28px 0;
+    display:grid; grid-template-columns: 40px 1fr auto; gap:18px;
+    align-items:start;
+    border-bottom:1px solid var(--line);
+  }
+  .check .tick{
+    width:30px; height:30px; border-radius:50%;
+    background: var(--accent); color: var(--white);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-size:14px;
+  }
+  .check h4{
+    margin:0; font-family:var(--display); font-weight:500; font-stretch:95%;
+    font-size: clamp(22px, 2.2vw, 30px); letter-spacing:-0.025em; line-height:1.1;
+  }
+  .check p{ margin:6px 0 0; color:var(--ink-2); font-size:15px; }
+  .check .tag{
+    font-family:var(--mono); font-size:11px; font-stretch:80%; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--mute);
+    align-self:center;
+  }
+  @media (max-width: 480px){
+    .check{ grid-template-columns: 40px 1fr; }
+    .check .tag{ display:none; }
+  }
+  .check:nth-child(odd){ padding-right: clamp(0px, 3vw, 40px); }
+  .check:nth-child(even){ padding-left: clamp(0px, 3vw, 40px); border-left:1px solid var(--line); }
+  @media (max-width: 760px){
+    .check:nth-child(even){ padding-left:0; border-left:0; }
+    .check:nth-child(odd){ padding-right:0; }
+  }
+
+  /* ============ COVERAGE ============ */
+  .coverage{ background: var(--navy); color: var(--white); }
+  .coverage .eyebrow{ color: #94a3c4; }
+  .coverage .eyebrow::before{ background: var(--accent); }
+  .coverage .display{ color: var(--white); }
+  .coverage .lede{ color: #b8c2d8; }
+  .coverage .map-wrap{
+    margin-top: clamp(40px, 5vw, 64px);
+    border-radius: var(--r-xl);
+    background: var(--navy-2);
+    padding: clamp(24px, 4vw, 48px);
+    display:grid;
+    grid-template-columns: 1fr 320px;
+    gap: clamp(24px, 3vw, 40px);
+    position:relative; overflow:hidden;
+    border:1px solid #14305c;
+  }
+  @media (max-width: 900px){ .coverage .map-wrap{ grid-template-columns: 1fr; } }
+  @media (max-width: 560px){
+    .map-legend .row b{ font-size:18px; white-space:nowrap; }
+  }
+  .map-svg{ width:100%; height:auto; aspect-ratio: 5/4; }
+  .map-legend{
+    display:flex; flex-direction:column; gap:14px;
+    align-self:end;
+  }
+  .map-legend .row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding: 12px 0; border-bottom: 1px solid #14305c;
+    font-family:var(--mono); font-size:12px; font-stretch:80%; letter-spacing:0.08em; text-transform:uppercase;
+    color: #b8c2d8;
+  }
+  .map-legend .row b{ font-family:var(--display); font-weight:500; font-stretch:95%; font-size: 22px; letter-spacing:-0.02em; color:var(--white); text-transform:none; }
+  .pulse-dot{ animation: pulse 2.2s ease-out infinite; transform-origin:center; transform-box: fill-box; }
+  @keyframes pulse{
+    0%{ opacity:0.9; r: 4; }
+    100%{ opacity:0; r: 22; }
+  }
+
+  /* ============ ABOUT ============ */
+  .about-grid{
+    display:grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 80px);
+    align-items:start;
+  }
+  @media (max-width: 860px){ .about-grid{ grid-template-columns: 1fr; } }
+  @media (max-width: 480px){
+    .about-images{ grid-template-rows: 180px 130px; }
+  }
+  .about-images{
+    display:grid; grid-template-columns: 1fr 1fr;
+    grid-template-rows: 220px 160px;
+    gap: 14px;
+  }
+  .about-images .cell{ border-radius: var(--r-lg); overflow:hidden; position:relative; }
+  .about-images .tall{ grid-row: 1 / span 2; }
+  .about-pills{
+    display:flex; flex-wrap:wrap; gap:8px; margin-top: 28px;
+  }
+  .pill{
+    border:1px solid var(--line-2); border-radius:999px;
+    padding:8px 14px; font-size:13.5px; color:var(--ink-2);
+    font-family:var(--sans);
+    background: var(--card);
+  }
+  .pill.accent{ background: var(--sky-soft); border-color: color-mix(in oklab, var(--accent) 35%, transparent); color: var(--accent-ink); font-weight:500; }
+
+  /* ============ STATS ============ */
+  .stats{
+    background: var(--bg);
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  }
+  .stat-grid{
+    display:grid; grid-template-columns: repeat(4, 1fr); gap:0;
+  }
+  @media (max-width: 860px){ .stat-grid{ grid-template-columns: repeat(2, 1fr); } }
+  .stat{
+    padding: clamp(20px, 3vw, 36px) clamp(20px, 3vw, 36px);
+    border-left:1px solid var(--line);
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .stat:first-child{ border-left:0; padding-left:0; }
+  @media (max-width: 860px){
+    .stat:nth-child(3){ border-left:0; padding-left:0; }
+    .stat{ padding-left: clamp(16px, 3vw, 28px); }
+  }
+  .stat .v{
+    font-family:var(--display); font-weight:500; font-stretch:92%;
+    font-size: clamp(48px, 6vw, 88px); line-height:1; letter-spacing:-0.04em;
+  }
+  .stat .v .suffix{ font-size:0.55em; color:var(--mute); margin-left:4px; }
+  .stat .k{ font-family:var(--mono); font-size:12px; font-stretch:80%; letter-spacing:0.08em; text-transform:uppercase; color:var(--mute); }
+
+  /* ============ TESTIMONIALS ============ */
+  .quotes-rail{
+    display:flex; gap:18px; overflow-x:auto; scroll-snap-type: x mandatory;
+    padding-bottom: 14px;
+    scrollbar-width: thin;
+  }
+  .quote{
+    flex: 0 0 min(520px, 84vw);
+    scroll-snap-align: start;
+    border:1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 32px;
+    background: var(--card);
+    display:flex; flex-direction:column; gap: 24px;
+    min-height: 320px;
+  }
+  .quote q{
+    font-family:var(--display); font-weight:500; font-stretch:95%;
+    font-size: clamp(20px, 1.8vw, 26px); line-height:1.25; letter-spacing:-0.02em;
+    quotes: "“" "”"; color:var(--ink);
+  }
+  .quote .who{
+    display:flex; align-items:center; gap:14px;
+    margin-top:auto;
+  }
+  .quote .av{
+    width:44px; height:44px; border-radius:50%;
+    background: var(--navy-soft); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-stretch:80%; font-size:13px; color:var(--navy); font-weight:600; letter-spacing:0.04em;
+  }
+  .quote .who .name{ font-size:14.5px; font-weight:500; }
+  .quote .who .role{ font-size:13px; color:var(--mute); }
+  .rail-ctrl{
+    display:flex; gap:8px; justify-content:flex-end; margin-bottom: 24px;
+  }
+  .rail-ctrl button{
+    width:44px; height:44px; border-radius:50%;
+    background: var(--card); border:1px solid var(--line-2);
+    display:flex; align-items:center; justify-content:center;
+    transition: background .2s ease, border-color .2s ease;
+  }
+  .rail-ctrl button:hover{ background: var(--bg-2); border-color: var(--ink); }
+
+  /* ============ CTA ============ */
+  .cta-band{
+    padding: clamp(80px, 12vw, 160px) 0;
+    background: var(--navy); color: var(--white);
+    position:relative; overflow:hidden;
+  }
+  .cta-band::before{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(55% 70% at 85% 25%, color-mix(in oklab, var(--accent) 55%, transparent) 0%, transparent 70%);
+    opacity:0.6; pointer-events:none;
+  }
+  .cta-band .wrap{ position:relative; z-index:1; }
+  .cta-band h2{ color: var(--white); margin: 12px 0 28px; }
+  .cta-band .lede{ color: #b8c2d8; }
+  .cta-actions{ display:flex; gap:12px; flex-wrap:wrap; margin-top: 36px; }
+  .cta-band .btn-primary{ background: var(--white); color: var(--navy); }
+  .cta-band .btn-primary:hover{ background: var(--mist); }
+  .cta-band .btn-ghost{ color: var(--white); border-color: #2a3f6b; }
+  .cta-band .btn-ghost:hover{ background: var(--navy-2); border-color: var(--white); }
+
+  /* ============ FOOTER ============ */
+  footer{
+    background: var(--bg);
+    padding: clamp(56px, 8vw, 96px) 0 32px;
+  }
+  .foot-top{
+    display:grid; grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr; gap: 32px;
+    padding-bottom: 48px; border-bottom:1px solid var(--line);
+  }
+  @media (max-width: 900px){ .foot-top{ grid-template-columns: 1fr 1fr; row-gap: 36px; } .foot-brand{ grid-column: 1 / -1; } }
+  @media (max-width: 420px){ .foot-top{ grid-template-columns: 1fr; } }
+  .foot-col h5{
+    font-family:var(--mono); font-size:11px; font-stretch:80%; letter-spacing:0.10em; text-transform:uppercase;
+    color: var(--mute); margin: 0 0 16px;
+  }
+  .foot-col ul{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+  .foot-col li a{ color:var(--ink-2); font-size:14.5px; }
+  .foot-col li a:hover{ color: var(--ink); }
+  .foot-brand p{ color:var(--ink-2); font-size:14.5px; max-width: 36ch; margin: 12px 0 0; }
+  .foot-bot{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-top: 28px; gap:16px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:12px; font-stretch:80%; letter-spacing:0.06em; color:var(--mute); text-transform:uppercase;
+  }
+  .foot-mark{
+    font-family: var(--display);
+    font-weight: 600;
+    font-stretch: 105%;
+    font-size: clamp(80px, 18vw, 240px); line-height: 0.85;
+    letter-spacing: -0.05em;
+    margin-top: 48px;
+    color: var(--navy);
+    overflow:hidden;
+  }
+  .foot-mark .em{ color: var(--accent); }
+
+  /* ============ REVEAL ============ */
+  .reveal{
+    opacity:0; transform: translateY(18px);
+    transition: opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1);
+  }
+  .reveal.in{ opacity:1; transform: none; }
+
+  /* ============ MOTION UPGRADES ============ */
+  /* Responsive CTA + buttons */
+  @media (max-width: 560px){
+    .cta-actions{ flex-direction:column; align-items:stretch; }
+    .cta-actions .btn{ justify-content:center; white-space:normal; height:auto; min-height:52px; padding:12px 20px; text-align:center; word-break:break-word; }
+    .stat-grid{ grid-template-columns: 1fr 1fr; }
+    .quote{ padding:24px; min-height:260px; }
+    section{ padding: 56px 0; }
+  }
+
+  /* Scroll progress bar */
+  #progress{
+    position:fixed; top:0; left:0; height:3px; width:0%;
+    background: linear-gradient(90deg, var(--sky), var(--sky-2));
+    z-index:60; transition: width .1s linear;
+  }
+
+  /* Hero headline line-by-line rise */
+  .hero-title{ margin: 0 0 clamp(20px, 3vw, 36px); }
+  .hero-title .line{ display:inline-block; overflow:hidden; vertical-align:bottom; }
+  .hero-title .line > span{
+    display:inline-block; opacity:0; transform: translateY(14px);
+    animation: riseUp .7s ease-out forwards;
+  }
+  .hero-title .line:nth-child(1) > span{ animation-delay: .05s; }
+  .hero-title .line:nth-child(3) > span{ animation-delay: .13s; }
+  .hero-title .line:nth-child(5) > span{ animation-delay: .21s; }
+  @keyframes riseUp{ to{ opacity:1; transform: translateY(0); } }
+
+  /* Nav link underline */
+  .nav-links a::after{
+    content:""; position:absolute; left:0; bottom:0; height:1.5px; width:100%;
+    background: var(--accent); transform: scaleX(0); transform-origin: right;
+    transition: transform .3s cubic-bezier(.2,.7,.2,1);
+  }
+  .nav-links a:hover::after{ transform: scaleX(1); transform-origin: left; }
+
+  /* Photo hover zoom + hero ken-burns */
+  .cell .photo{ transition: transform 1.1s cubic-bezier(.2,.7,.2,1), filter .4s ease; }
+  .cell:hover .photo{ transform: scale(1.06); filter: saturate(1.05) contrast(1.03); }
+  .hero-grid .cell.big .photo{ animation: kenburns 22s ease-in-out infinite alternate; }
+  @keyframes kenburns{ from{ transform: scale(1); } to{ transform: scale(1.09) translate(-1.5%, 1%); } }
+
+  /* Marquee band */
+  .marquee{
+    overflow:hidden; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding: 22px 0; background: var(--white);
+  }
+  .marquee-track{
+    display:flex; align-items:center; gap: 36px; width:max-content;
+    animation: marquee 26s linear infinite;
+    font-family:var(--display); font-weight:500; font-stretch:95%;
+    font-size: clamp(24px, 3vw, 44px); letter-spacing:-0.025em; color:var(--navy);
+    white-space:nowrap;
+  }
+  .marquee:hover .marquee-track{ animation-play-state: paused; }
+  .marquee-track .em{ color: var(--accent); }
+  .m-dot{ width:8px; height:8px; border-radius:50%; background:var(--accent); flex:0 0 auto; }
+  @keyframes marquee{ to{ transform: translateX(-50%); } }
+
+  /* Map route flow */
+  .routes path{ animation: routeflow 1.4s linear infinite; }
+  @keyframes routeflow{ to{ stroke-dashoffset: -28; } }
+
+  /* CTA glow drift */
+  .cta-band::before{ animation: glowDrift 9s ease-in-out infinite; }
+  @keyframes glowDrift{
+    0%,100%{ transform: translate(0,0) scale(1); opacity:.6; }
+    50%{ transform: translate(-5%, 4%) scale(1.18); opacity:.85; }
+  }
+
+  /* Full-bleed photo band */
+  .photo-band{
+    padding:0; position:relative; overflow:hidden; height: clamp(280px, 44vw, 520px);
+  }
+  .photo-band img{
+    width:100%; height:114%; object-fit:cover; display:block;
+    filter: saturate(0.95);
+    will-change: transform;
+  }
+  .photo-band-label{ position:absolute; left:0; bottom:28px; width:100%; }
+  .photo-band-label .eyebrow{
+    margin-left: var(--pad);
+    background: color-mix(in oklab, var(--navy) 65%, transparent);
+    backdrop-filter: blur(6px); padding:8px 16px; border-radius:999px;
+  }
+
+  /* Footer mark rise */
+  .foot-mark span, .foot-mark{ transition: none; }
+
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ opacity:1; transform:none; transition:none; }
+    .pulse-dot, .routes path, .marquee-track, .hero-grid .cell.big .photo, .cta-band::before{ animation: none; }
+    .hero-title .line > span{ animation:none; transform:none; opacity:1; }
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- =================== NAV =================== -->
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a class="logo" href="#top" aria-label="Trident Express home">
+      <img src="assets/a1.svg" alt="Trident Express">
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#services">Services</a>
+      <a href="#coverage">Coverage</a>
+      <a href="#about">About</a>
+      <a href="#stats">Impact</a>
+      <a href="#testimonials">Clients</a>
+    </nav>
+    <a class="nav-cta" href="#contact">
+      Get a quote
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </a>
+    <button class="nav-mobile nav-cta" aria-label="Toggle menu" aria-expanded="false" onclick="const l=document.querySelector('.nav-links');l.classList.toggle('open');this.setAttribute('aria-expanded', l.classList.contains('open'));">Menu</button>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- =================== HERO =================== -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-meta reveal">
+      <div class="eyebrow">Last-mile logistics · est. 2024</div>
+          <span class="loc">Operating · <b>Melbourne, VIC</b> &nbsp;/&nbsp; 37.81°S · 144.96°E</span>
+    </div>
+
+    <h1 class="display h-xl hero-title">
+      <span class="line"><span>Reliable last-mile</span></span><br>
+      <span class="line"><span>delivery, built for</span></span><br>
+      <span class="line"><span class="em">modern businesses.</span></span>
+    </h1>
+
+    <div class="hero-sub reveal">
+      <p class="lede">
+        Subcontracted logistics tailored for enterprise, SMBs, and individuals
+        across Greater Melbourne and key VIC corridors — same-day, scheduled,
+        white-glove, and electric.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#contact">
+          Get a quote
+          <span class="arrow" aria-hidden="true">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M6 2l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </span>
+        </a>
+        <a class="btn btn-ghost" href="#contact">Contact us</a>
+      </div>
+    </div>
+
+    <div class="hero-grid reveal">
+      <div class="cell big">
+        <img class="photo" loading="lazy" alt="Delivery van at dusk" src="assets/a6.jpg" onerror="this.onerror=null;this.src='https://picsum.photos/seed/trident-hero/1600/1000'">
+        <span class="caption">Fleet · metro corridor</span>
+      </div>
+      <div class="cell">
+        <img class="photo" loading="lazy" alt="Electric delivery van charging" src="assets/a0.jpg" onerror="this.onerror=null;this.src='https://picsum.photos/seed/trident-ev/900/700'">
+        <span class="caption">EV van · depot</span>
+      </div>
+      <div class="cell">
+        <img class="photo" loading="lazy" alt="Driver scanning parcel" src="assets/a4.jpg" onerror="this.onerror=null;this.src='https://picsum.photos/seed/trident-pod/900/700'">
+        <span class="caption">Driver · POD scan</span>
+      </div>
+      <div class="cell">
+        <img class="photo" loading="lazy" alt="Open road at dawn" src="assets/a3.jpg" onerror="this.onerror=null;this.src='https://picsum.photos/seed/trident-route/900/700'">
+        <span class="caption">Route · dawn</span>
+      </div>
+      <div class="cell">
+        <img class="photo" loading="lazy" alt="Warehouse pallet rack" src="assets/a7.jpg" onerror="this.onerror=null;this.src='https://picsum.photos/seed/trident-warehouse/900/700'">
+        <span class="caption">Warehouse · pallet</span>
+      </div>
+    </div>
+
+    <div class="ticker reveal">
+      <div><span class="k">Fleet</span><span class="v"><span data-count="62">0</span></span></div>
+      <div><span class="k">EV share</span><span class="v"><span data-count="38">0</span>%</span></div>
+      <div><span class="k">On-time</span><span class="v"><span data-count="98.4" data-decimals="1">0.0</span>%</span></div>
+      <div><span class="k">Corridors</span><span class="v"><span data-count="14">0</span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== MARQUEE =================== -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>Same-day</span><span class="m-dot"></span><span>Scheduled runs</span><span class="m-dot"></span><span>White-glove</span><span class="m-dot"></span><span class="em">Electric fleet</span><span class="m-dot"></span><span>Greater Melbourne</span><span class="m-dot"></span><span>Same-day</span><span class="m-dot"></span><span>Scheduled runs</span><span class="m-dot"></span><span>White-glove</span><span class="m-dot"></span><span class="em">Electric fleet</span><span class="m-dot"></span><span>Greater Melbourne</span><span class="m-dot"></span>
+  </div>
+</div>
+
+<!-- =================== SERVICES =================== -->
+<section class="services" id="services">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div>
+        <span class="eyebrow">01 — Services</span>
+        <h2 class="display h-lg">What we move,<br><span class="italic">how you need it.</span></h2>
+      </div>
+      <p class="lede">Subcontracted last-mile solutions tailored to your network.
+        Four core service modes, designed to slot directly into existing operations.</p>
+    </div>
+
+    <div class="svc-grid">
+      <article class="svc reveal">
+        <div class="num">01</div>
+        <div class="icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 13l2-6h8l2 3h4l2 3v4h-2a2 2 0 11-4 0H9a2 2 0 11-4 0H3v-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path></svg>
+        </div>
+        <h3>Same-day delivery</h3>
+        <p>Urban &amp; metro drops with signature capture, POD photos, and live ETA telemetry.</p>
+        <span class="more">Learn more</span>
+      </article>
+
+      <article class="svc reveal">
+        <div class="num">02</div>
+        <div class="icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="15" rx="2" stroke="currentColor" stroke-width="1.5"></rect><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+        </div>
+        <h3>Scheduled runs</h3>
+        <p>Recurring store-stock transfers and route deliveries on predictable, auditable windows.</p>
+        <span class="more">Learn more</span>
+      </article>
+
+      <article class="svc reveal">
+        <div class="num">03</div>
+        <div class="icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 10V7a5 5 0 1110 0v3M5 10h14l-1.2 9.2a2 2 0 01-2 1.8H8.2a2 2 0 01-2-1.8L5 10z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path></svg>
+        </div>
+        <h3>White-glove</h3>
+        <p>Two-person teams, room-of-choice placement, packaging removal, and light assembly.</p>
+        <span class="more">Learn more</span>
+      </article>
+
+      <article class="svc green reveal">
+        <div class="num">04</div>
+        <div class="icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path></svg>
+        </div>
+        <h3>Electric deliveries</h3>
+        <p>Lower-emission EV routes aligned with state sustainability targets and ESG reporting.</p>
+        <span class="more">Learn more</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =================== HIGHLIGHT CHECKLIST =================== -->
+<section class="highlight" id="our-services">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div>
+        <span class="eyebrow">02 — Our services</span>
+        <h2 class="display h-lg">A network you can <span class="italic">drop into.</span></h2>
+      </div>
+      <p class="lede">Subcontracted last-mile solutions for enterprise, SMBs, and individuals — already integrated with TMS, route optimisers, and major retail dispatch flows.</p>
+    </div>
+
+    <div class="checklist">
+      <div class="check reveal">
+        <div class="tick" aria-hidden="true">✓</div>
+        <div>
+          <h4>Same-day delivery</h4>
+          <p>Time-definite metro drops, POD photos, and signature capture, integrated with your TMS.</p>
+        </div>
+        <span class="tag">A · METRO</span>
+      </div>
+      <div class="check reveal">
+        <div class="tick" aria-hidden="true">✓</div>
+        <div>
+          <h4>Scheduled runs</h4>
+          <p>Recurring retail routes and store transfers — fixed windows, predictable cost, full audit trail.</p>
+        </div>
+        <span class="tag">B · RECURRING</span>
+      </div>
+      <div class="check reveal">
+        <div class="tick" aria-hidden="true">✓</div>
+        <div>
+          <h4>White-glove</h4>
+          <p>Two-person teams, room-of-choice, light assembly, and packaging takeback on request.</p>
+        </div>
+        <span class="tag">C · PREMIUM</span>
+      </div>
+      <div class="check reveal">
+        <div class="tick" aria-hidden="true">✓</div>
+        <div>
+          <h4>Electric deliveries</h4>
+          <p>Lower-emission EV routes aligned with VIC government sustainability targets.</p>
+        </div>
+        <span class="tag">D · EV</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== COVERAGE =================== -->
+<section class="coverage" id="coverage">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div>
+        <span class="eyebrow">03 — Coverage</span>
+        <h2 class="display h-lg" style="color:var(--bg)">Greater Melbourne<br><span class="italic" style="color:oklch(80% 0.01 80)">+ key VIC corridors.</span></h2>
+      </div>
+      <p class="lede">A network purpose-built for Victoria — from CBD micro-fulfilment to regional corridor transfers. Real-time visibility from depot to doorstep.</p>
+    </div>
+
+    <div class="map-wrap reveal">
+      <svg class="map-svg" viewBox="0 0 500 400" role="img" aria-label="Coverage map of Victoria, Australia">
+        <!-- abstract VIC outline -->
+        <defs>
+          <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse">
+            <circle cx="1.2" cy="1.2" r="1" fill="#1e3a6e"></circle>
+          </pattern>
+        </defs>
+        <path d="M40 140 L120 95 L195 80 L275 95 L335 120 L405 140 L455 175 L460 240 L420 290 L355 310 L285 320 L210 315 L140 305 L85 285 L55 240 L40 190 Z" fill="url(#dots)" stroke="#2a4880" stroke-width="1"></path>
+        <!-- routes -->
+        <g class="routes" stroke="#00aeef" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-dasharray="2 5">
+          <path d="M260 220 C 220 200, 180 170, 130 150"></path>
+          <path d="M260 220 C 300 200, 340 180, 390 160"></path>
+          <path d="M260 220 C 280 250, 300 280, 340 295"></path>
+          <path d="M260 220 C 240 250, 215 275, 180 290"></path>
+          <path d="M260 220 C 270 195, 285 165, 300 130"></path>
+        </g>
+        <!-- city nodes -->
+        <g>
+          <!-- Melbourne (hub) -->
+          <circle class="pulse-dot" cx="260" cy="220" r="4" fill="#00aeef"></circle>
+          <circle cx="260" cy="220" r="5" fill="#69d2f7"></circle>
+          <text x="270" y="217" fill="#ffffff" font-family="Archivo, sans-serif" font-weight="500" font-stretch="80%" font-size="11" letter-spacing="0.6">MELBOURNE · HUB</text>
+
+          <circle cx="130" cy="150" r="3.5" fill="#cdd9eb"></circle>
+          <text x="138" y="148" fill="#cdd9eb" font-family="Archivo, sans-serif" font-stretch="80%" font-size="10" letter-spacing="0.6">BALLARAT</text>
+
+          <circle cx="390" cy="160" r="3.5" fill="#cdd9eb"></circle>
+          <text x="398" y="158" fill="#cdd9eb" font-family="Archivo, sans-serif" font-stretch="80%" font-size="10" letter-spacing="0.6">WANGARATTA</text>
+
+          <circle cx="340" cy="295" r="3.5" fill="#cdd9eb"></circle>
+          <text x="348" y="293" fill="#cdd9eb" font-family="Archivo, sans-serif" font-stretch="80%" font-size="10" letter-spacing="0.6">SALE</text>
+
+          <circle cx="180" cy="290" r="3.5" fill="#cdd9eb"></circle>
+          <text x="100" y="288" fill="#cdd9eb" font-family="Archivo, sans-serif" font-stretch="80%" font-size="10" letter-spacing="0.6">GEELONG</text>
+
+          <circle cx="300" cy="130" r="3.5" fill="#cdd9eb"></circle>
+          <text x="308" y="128" fill="#cdd9eb" font-family="Archivo, sans-serif" font-stretch="80%" font-size="10" letter-spacing="0.6">BENDIGO</text>
+        </g>
+      </svg>
+
+      <div class="map-legend">
+        <div class="row"><span>Metro zones</span><b>27</b></div>
+        <div class="row"><span>Active corridors</span><b>14</b></div>
+        <div class="row"><span>Depot &amp; micro-fulfilment</span><b>6</b></div>
+        <div class="row"><span>Avg. metro ETA</span><b>2h 40m</b></div>
+        <div class="row"><span>Live vehicles · now</span><b>41</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== ABOUT =================== -->
+<section id="about">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div>
+        <span class="eyebrow">04 — About</span>
+        <h2 class="display h-lg">A logistics partner,<br><span class="italic">not a vendor.</span></h2>
+      </div>
+      <p class="lede">Trident is a subcontracted last-mile operator built for the modern enterprise — designed around reliability, accountability, and a quietly relentless improvement loop.</p>
+    </div>
+
+    <div class="about-grid">
+      <div class="reveal">
+        <p class="lede" style="max-width:48ch; margin-bottom:18px;">
+          We started moving freight for two retailers in 2024. Today we run a vetted driver network and a growing EV fleet across the Greater Melbourne grid — quietly, dependably, on time.
+        </p>
+        <p class="lede" style="max-width:48ch;">
+          Every Trident driver is trained, insured, and uniformed. Every drop is captured, time-stamped, and reconciled. No surprises, no hidden fees, no missing parcels.
+        </p>
+
+        <div class="about-pills">
+          <span class="pill">Reliability-first</span>
+          <span class="pill">Enterprise-ready SLAs</span>
+          <span class="pill">Vetted driver network</span>
+          <span class="pill accent">EV fleet · 38%</span>
+          <span class="pill">Aus &amp; VIC compliant</span>
+          <span class="pill">24/7 ops desk</span>
+        </div>
+      </div>
+
+      <div class="about-images reveal">
+        <div class="cell tall">
+          <img class="photo" loading="lazy" alt="Operations floor" src="assets/a5.jpg" onerror="this.onerror=null;this.src='https://picsum.photos/seed/trident-ops/900/1200'">
+          <span class="caption">Founder · ops floor</span>
+        </div>
+        <div class="cell">
+          <img class="photo" loading="lazy" alt="EV plug-in" src="https://images.unsplash.com/photo-1620891549027-942fa2e54ec6?w=900&amp;auto=format&amp;fit=crop&amp;q=80" onerror="this.onerror=null;this.src='https://picsum.photos/seed/trident-plug/900/600'">
+          <span class="caption">EV · plug-in</span>
+        </div>
+        <div class="cell">
+          <img class="photo" loading="lazy" alt="Night load-out" src="assets/a2.jpg" onerror="this.onerror=null;this.src='https://picsum.photos/seed/trident-loadout/900/600'">
+          <span class="caption">Night · load-out</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== STATS =================== -->
+<section class="stats" id="stats">
+  <div class="wrap">
+    <div class="section-head reveal" style="margin-bottom: clamp(24px, 3vw, 40px)">
+      <div>
+        <span class="eyebrow">05 — Impact</span>
+        <h2 class="display h-md">By the numbers.</h2>
+      </div>
+      <p class="lede">Twelve-month rolling window. Updated nightly.</p>
+    </div>
+    <div class="stat-grid">
+      <div class="stat reveal"><div class="v"><span data-count="1.42" data-decimals="2">0.00</span><span class="suffix">M</span></div><div class="k">Deliveries completed</div></div>
+      <div class="stat reveal"><div class="v"><span data-count="62">0</span></div><div class="k">Fleet vehicles</div></div>
+      <div class="stat reveal"><div class="v"><span data-count="148">0</span></div><div class="k">Enterprise clients</div></div>
+      <div class="stat reveal"><div class="v"><span data-count="98.4" data-decimals="1">0.0</span><span class="suffix">%</span></div><div class="k">On-time delivery</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== TESTIMONIALS =================== -->
+<section id="testimonials">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div>
+        <span class="eyebrow">06 — Clients</span>
+        <h2 class="display h-lg">Trusted by the<br><span class="italic">operators behind it.</span></h2>
+      </div>
+      <p class="lede">From national retailers to neighbourhood boutiques — clients who care about every parcel arriving exactly when, and how, they said it would.</p>
+    </div>
+
+    <div class="rail-ctrl reveal">
+      <button aria-label="Previous testimonial" onclick="document.getElementById('qrail').scrollBy({left:-540, behavior:'smooth'})">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
+      <button aria-label="Next testimonial" onclick="document.getElementById('qrail').scrollBy({left:540, behavior:'smooth'})">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </button>
+    </div>
+
+    <div class="quotes-rail reveal" id="qrail">
+      <article class="quote">
+        <q>Trident has been the single most reliable subcontractor we've worked with in five years of operating last-mile in Victoria. Their POD discipline is genuinely best-in-class.</q>
+        <div class="who"><div class="av">MR</div><div><div class="name">Maya Reyes</div><div class="role">Head of Operations · National Retailer</div></div></div>
+      </article>
+      <article class="quote">
+        <q>We needed a partner who could scale EV routes without making it a project. Trident slotted in within a fortnight and our scope-3 numbers stopped being a quarterly fire-drill.</q>
+        <div class="who"><div class="av">DK</div><div><div class="name">Daniel Kim</div><div class="role">Sustainability Lead · Logistics SaaS</div></div></div>
+      </article>
+      <article class="quote">
+        <q>Two-person teams that show up uniformed, on time, and don't damage walls. White-glove sounds simple — almost no one does it consistently. Trident does.</q>
+        <div class="who"><div class="av">AS</div><div><div class="name">Anna Sørensen</div><div class="role">Founder · Premium Furniture Brand</div></div></div>
+      </article>
+      <article class="quote">
+        <q>The ops desk picks up at 2am and actually solves the problem. That alone is worth the contract.</q>
+        <div class="who"><div class="av">JT</div><div><div class="name">James Tran</div><div class="role">Logistics Director · Grocery Chain</div></div></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =================== IMAGE BAND =================== -->
+<section class="photo-band" aria-label="On the road">
+  <img loading="lazy" alt="Highway at dusk" src="https://images.unsplash.com/photo-1465447142348-e9952c393450?w=2000&auto=format&fit=crop&q=80" onerror="this.onerror=null;this.src='assets/a3.jpg'">
+  <div class="photo-band-label reveal"><span class="eyebrow" style="color:#d6f1fc">On the road · 24/7</span></div>
+</section>
+
+<!-- =================== CTA =================== -->
+<section class="cta-band" id="contact">
+  <div class="wrap">
+    <span class="eyebrow" style="color: #94a3c4">07 — Get in touch</span>
+    <h2 class="display h-xl">Need a reliable<br>delivery partner?</h2>
+    <p class="lede" style="max-width: 52ch">Tell us your routes, your volumes, and your service-level expectations. We'll quote in 48 hours and ride along on your first scheduled day, free of charge.</p>
+    <div class="cta-actions">
+      <a class="btn btn-primary" href="#contact">
+        Request a quote
+        <span class="arrow" aria-hidden="true">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M6 2l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </span>
+      </a>
+      <a class="btn btn-ghost" href="mailto:mail@tridentexpress.com.au">mail@tridentexpress.com.au</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- =================== FOOTER =================== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand foot-col">
+        <a class="logo" href="#top" aria-label="Trident Express home">
+          <img src="assets/a1.svg" alt="Trident Express" style="height:36px;">
+        </a>
+        <p>Subcontracted last-mile logistics for Greater Melbourne and the VIC corridors.</p>
+      </div>
+      <div class="foot-col">
+        <h5>Services</h5>
+        <ul>
+          <li><a href="#services">Same-day</a></li>
+          <li><a href="#services">Scheduled runs</a></li>
+          <li><a href="#services">White-glove</a></li>
+          <li><a href="#services">Electric fleet</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5>Coverage</h5>
+        <ul>
+          <li><a href="#coverage">Greater Melbourne</a></li>
+          <li><a href="#coverage">Geelong corridor</a></li>
+          <li><a href="#coverage">Ballarat / Bendigo</a></li>
+          <li><a href="#coverage">Gippsland</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li><a href="#stats">Impact</a></li>
+          <li><a href="#testimonials">Clients</a></li>
+          <li><a href="#contact">Careers</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5>Contact</h5>
+        <ul>
+          <li><a href="mailto:mail@tridentexpress.com.au">mail@tridentexpress.com.au</a></li>
+          <li><a href="tel:+61300000000">+61 3 0000 0000</a></li>
+          <li><a href="#">LinkedIn</a></li>
+          <li><a href="#">Instagram</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="foot-mark" aria-hidden="true">Trident<span class="em"> / VIC</span></div>
+
+    <div class="foot-bot">
+      <span>© 2026 Trident Express Pty Ltd · Est. 2024</span>
+      <span>ABN 92 675 204 850</span>
+      <span>Melbourne · VIC · AU</span>
+    </div>
+  </div>
+</footer>
+
+<div id="progress" aria-hidden="true"></div>
+
+<script>
+  // ===== Scroll progress bar
+  const progress = document.getElementById('progress');
+  const onProgress = () => {
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    progress.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+  };
+  document.addEventListener('scroll', onProgress, { passive: true });
+  onProgress();
+
+  // ===== Staggered reveals within grids
+  document.querySelectorAll('.svc-grid, .checklist, .stat-grid').forEach(g => {
+    [...g.children].forEach((el, i) => { el.style.transitionDelay = (i * 90) + 'ms'; });
+  });
+
+  // ===== Gentle parallax on the photo band
+  const bandImg = document.querySelector('.photo-band img');
+  if (bandImg && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const parallax = () => {
+      const r = bandImg.parentElement.getBoundingClientRect();
+      const vh = window.innerHeight;
+      if (r.bottom > 0 && r.top < vh) {
+        const p = (r.top + r.height / 2 - vh / 2) / vh; // -0.5..0.5-ish
+        bandImg.style.transform = 'translateY(' + (p * -5 - 5).toFixed(2) + '%)';
+      }
+      requestAnimationFrame(parallax);
+    };
+    requestAnimationFrame(parallax);
+  }
+
+  // ===== Close mobile menu on link tap
+  document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => {
+    document.querySelector('.nav-links').classList.remove('open');
+    const m = document.querySelector('.nav-mobile');
+    if (m) m.setAttribute('aria-expanded', 'false');
+  }));
+
+  // ===== Nav scroll state
+  const nav = document.getElementById('nav');
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 8);
+  document.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // ===== Reveal on scroll
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    }
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ===== Animated counters
+  const countIO = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      const el = e.target;
+      const target = parseFloat(el.dataset.count);
+      const decimals = parseInt(el.dataset.decimals || '0', 10);
+      const dur = 1400;
+      const start = performance.now();
+      const tick = (t) => {
+        const p = Math.min(1, (t - start) / dur);
+        // easeOutCubic
+        const eased = 1 - Math.pow(1 - p, 3);
+        const val = target * eased;
+        el.textContent = val.toLocaleString('en-AU', {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals
+        });
+        if (p < 1) requestAnimationFrame(tick);
+        else el.textContent = target.toLocaleString('en-AU', {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals
+        });
+      };
+      requestAnimationFrame(tick);
+      countIO.unobserve(el);
+    }
+  }, { threshold: 0.4 });
+  document.querySelectorAll('[data-count]').forEach(el => countIO.observe(el));
+</script>
+
+
+</body></html>
